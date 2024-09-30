@@ -5,8 +5,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ru.gb.danila.entity.User;
 import ru.gb.danila.exceptions.BadRequestException;
-import ru.gb.danila.request.AbstractRequest;
+import ru.gb.danila.exceptions.DisconnectClientException;
 import ru.gb.danila.request.LoginRequest;
+import ru.gb.danila.request.TypeRequest;
 import ru.gb.danila.response.BadRequestResponse;
 import ru.gb.danila.response.LoginResponse;
 
@@ -14,10 +15,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -48,10 +46,10 @@ public class ChatServer {
 }
 
 class ClientHandler implements Runnable{
-    private static Map<String, User> userOnlineMap = new ConcurrentHashMap<>();
-    private static ObjectMapper mapper = new ObjectMapper();
+    private static final Map<String, User> userOnlineMap = new ConcurrentHashMap<>();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
-    private Socket socket;
+    private final Socket socket;
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
@@ -61,13 +59,15 @@ class ClientHandler implements Runnable{
     public void run() {
         try (Scanner in = new Scanner(socket.getInputStream()); PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
 
-            while (true) {
+            while (socket.isConnected()) {
                 listenClient(in, out);
             }
-
+        }catch (DisconnectClientException e){
+            System.out.println("client disconnected");
+            doClose();
         } catch (IOException e) {
            e.printStackTrace();
-           //doClose();
+           doClose();
         }
     }
 
@@ -79,28 +79,31 @@ class ClientHandler implements Runnable{
         }
     }
 
-    private void listenClient(Scanner in, PrintWriter out) {
+    private void listenClient(Scanner in, PrintWriter out) throws DisconnectClientException {
         try{
-            String jsonRequest = in.nextLine();
-            AbstractRequest abstractRequest = mapper.readValue(jsonRequest, AbstractRequest.class);
+            TypeRequest typeRequest = TypeRequest.valueOf(in.nextLine());
+            switch (typeRequest){
+                case LOGIN -> onLoginRequest(in, out);
 
-            switch (abstractRequest.getType()){
-                case LOGIN -> {
-                    LoginRequest request = mapper.readValue(jsonRequest, LoginRequest.class);
-                    if(userOnlineMap.get(request.getLogin()) != null){
-                        throw new BadRequestException("user already online");
-                    }
-                    userOnlineMap.put(request.getLogin(), new User(request.getLogin()));
-                    out.println(mapper.writeValueAsString(new LoginResponse()));
-                }
-                default -> {
-                    throw new BadRequestException("not correct request type");
-                }
+                default -> throw new BadRequestException("not correct request type");
+
             }
         } catch (BadRequestException | JsonProcessingException e) {
             onBadRequest(e.getMessage(), in, out);
+        }catch (NoSuchElementException e){
+            throw new DisconnectClientException();
         }
 
+    }
+
+    private void onLoginRequest(Scanner in, PrintWriter out) throws JsonProcessingException, BadRequestException {
+        String requestBody = in.nextLine();
+        LoginRequest request = mapper.readValue(requestBody, LoginRequest.class);
+        if(userOnlineMap.get(request.getLogin()) != null){
+            throw new BadRequestException("user already online");
+        }
+        userOnlineMap.put(request.getLogin(), new User(request.getLogin()));
+        out.println(mapper.writer().writeValueAsString(new LoginResponse()));
     }
 
     private void onBadRequest(String message, Scanner in, PrintWriter out) {

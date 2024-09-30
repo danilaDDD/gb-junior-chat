@@ -1,12 +1,17 @@
 package ru.gb.danila.response;
 
-public  class AbstractResponse {
+import java.io.Serializable;
+
+public  class AbstractResponse implements Serializable {
     private boolean successfully;
     private String errorMessage;
 
     public AbstractResponse(String errorMessage, boolean successfully) {
         this.errorMessage = errorMessage;
         this.successfully = successfully;
+    }
+
+    public AbstractResponse() {
     }
 
     public String getErrorMessage() {
@@ -23,5 +28,10 @@ public  class AbstractResponse {
 
     public void setSuccessfully(boolean successfully) {
         this.successfully = successfully;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Response{%s, %s}", successfully, errorMessage);
     }
 }
