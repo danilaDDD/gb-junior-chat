@@ -112,7 +112,6 @@ class Client{
 
                 System.out.println("send message successfully!");
             }
-            case DISCONNECT -> {}
         }
     }
 
