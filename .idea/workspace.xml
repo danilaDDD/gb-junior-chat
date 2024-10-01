@@ -4,14 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="545c8613-be38-4fee-93d3-5899712991b7" name="Changes" comment="fix login request">
-      <change afterPath="$PROJECT_DIR$/src/main/java/ru/gb/danila/request/GetUsersRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/ru/gb/danila/request/SendMessageRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/ru/gb/danila/response/GetUsersResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ru/gb/danila/client/ChatClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ru/gb/danila/client/ChatClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ru/gb/danila/entity/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ru/gb/danila/entity/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/ru/gb/danila/response/LoginResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ru/gb/danila/response/DoneResponse.java" afterDir="false" />
+    <list default="true" id="545c8613-be38-4fee-93d3-5899712991b7" name="Changes" comment="users">
       <change beforePath="$PROJECT_DIR$/src/main/java/ru/gb/danila/server/ChatServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ru/gb/danila/server/ChatServer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -165,7 +158,23 @@
       <option name="project" value="LOCAL" />
       <updated>1727735225287</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="users">
+      <option name="closed" value="true" />
+      <created>1727760048758</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1727760048758</updated>
+    </task>
+    <task id="LOCAL-00003" summary="users">
+      <option name="closed" value="true" />
+      <created>1727760105793</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1727760105793</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -173,24 +182,25 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="fix login request" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix login request" />
+    <MESSAGE value="users" />
+    <option name="LAST_COMMIT_MESSAGE" value="users" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/ru/gb/danila/server/ChatServer.java</url>
-          <line>40</line>
+          <line>39</line>
           <option name="timeStamp" value="11" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/ru/gb/danila/server/ChatServer.java</url>
-          <line>63</line>
+          <line>64</line>
           <option name="timeStamp" value="13" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/ru/gb/danila/server/ChatServer.java</url>
-          <line>66</line>
+          <line>67</line>
           <option name="timeStamp" value="14" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">

@@ -51,8 +51,10 @@ public class ChatServer {
 class ClientHandler implements Runnable{
     private static final Map<String, User> userOnlineMap = new ConcurrentHashMap<>();
     private static final ObjectMapper mapper = new ObjectMapper();
+    private static final Map<String, ClientHandler> ClientHandleMap = new ConcurrentHashMap<>();
 
     private final Socket socket;
+    private String login;
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
@@ -77,6 +79,9 @@ class ClientHandler implements Runnable{
     private void doClose() {
         try {
             socket.close();
+            if(login != null) {
+                ClientHandleMap.remove(this.login);
+            }
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -107,13 +112,20 @@ class ClientHandler implements Runnable{
         String login = request.getLogin();
         String message = request.getMessage();
 
-        userOnlineMap.entrySet().stream()
+        ClientHandleMap.entrySet().stream()
+                .filter(entry -> !entry.getKey().equals(login))
                 .map(Map.Entry::getValue)
-                .filter(user -> !user.getLogin().equals(login))
-                .forEach(user -> {
-
-                });
+                .forEach(clientHandler -> clientHandler.consumeMessage(message));
     }
+
+    private void consumeMessage(String message) {
+        try(PrintWriter out = new PrintWriter(socket.getOutputStream())){
+            out.println(message);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+    }
+
 
     private void onUsersList(Scanner in, PrintWriter out) throws JsonProcessingException {
         GetUsersRequest request = mapper.readValue(in.nextLine(), GetUsersRequest.class);
@@ -127,6 +139,10 @@ class ClientHandler implements Runnable{
     private void onLoginRequest(Scanner in, PrintWriter out) throws JsonProcessingException, BadRequestException {
         String requestBody = in.nextLine();
         LoginRequest request = mapper.readValue(requestBody, LoginRequest.class);
+
+        ClientHandleMap.put(request.getLogin(), this);
+        this.login = request.getLogin();
+
         if(userOnlineMap.get(request.getLogin()) != null){
             throw new BadRequestException("user already online");
         }
