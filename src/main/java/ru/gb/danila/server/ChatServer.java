@@ -1,15 +1,17 @@
 package ru.gb.danila.server;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ru.gb.danila.entity.User;
 import ru.gb.danila.exceptions.BadRequestException;
 import ru.gb.danila.exceptions.DisconnectClientException;
+import ru.gb.danila.request.GetUsersRequest;
 import ru.gb.danila.request.LoginRequest;
+import ru.gb.danila.request.SendMessageRequest;
 import ru.gb.danila.request.TypeRequest;
 import ru.gb.danila.response.BadRequestResponse;
-import ru.gb.danila.response.LoginResponse;
+import ru.gb.danila.response.GetUsersResponse;
+import ru.gb.danila.response.DoneResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -29,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 
 public class ChatServer {
+    Map<String, >
 
     public static void main(String[] args) {
         try (ServerSocket server = new ServerSocket(8888)){
@@ -36,7 +39,8 @@ public class ChatServer {
 
             while(true) {
                 Socket accept = server.accept();
-                new Thread(new ClientHandler(accept)).start();
+                ClientHandler clientHandler = new ClientHandler(accept);
+                new Thread(clientHandler).start();
             }
 
         } catch (IOException e) {
@@ -84,6 +88,8 @@ class ClientHandler implements Runnable{
             TypeRequest typeRequest = TypeRequest.valueOf(in.nextLine());
             switch (typeRequest){
                 case LOGIN -> onLoginRequest(in, out);
+                case USER_LIST -> onUsersList(in, out);
+                case SEND_MESSAGE -> onSendMessage(in, out);
 
                 default -> throw new BadRequestException("not correct request type");
 
@@ -96,6 +102,29 @@ class ClientHandler implements Runnable{
 
     }
 
+    private void onSendMessage(Scanner in, PrintWriter out) throws JsonProcessingException {
+        String requestBody = in.nextLine();
+        SendMessageRequest request = mapper.readValue(requestBody, SendMessageRequest.class);
+        String login = request.getLogin();
+        String message = request.getMessage();
+
+        userOnlineMap.entrySet().stream()
+                .map(Map.Entry::getValue)
+                .filter(user -> !user.getLogin().equals(login))
+                .forEach(user -> {
+
+                });
+    }
+
+    private void onUsersList(Scanner in, PrintWriter out) throws JsonProcessingException {
+        GetUsersRequest request = mapper.readValue(in.nextLine(), GetUsersRequest.class);
+        List<User> users = userOnlineMap.entrySet().stream()
+                .map(Map.Entry::getValue)
+                .toList();
+        String responseBody = mapper.writer().writeValueAsString(new GetUsersResponse(users));
+        out.println(responseBody);
+    }
+
     private void onLoginRequest(Scanner in, PrintWriter out) throws JsonProcessingException, BadRequestException {
         String requestBody = in.nextLine();
         LoginRequest request = mapper.readValue(requestBody, LoginRequest.class);
@@ -103,7 +132,8 @@ class ClientHandler implements Runnable{
             throw new BadRequestException("user already online");
         }
         userOnlineMap.put(request.getLogin(), new User(request.getLogin()));
-        out.println(mapper.writer().writeValueAsString(new LoginResponse()));
+        System.out.println(userOnlineMap);
+        out.println(mapper.writer().writeValueAsString(new DoneResponse()));
     }
 
     private void onBadRequest(String message, Scanner in, PrintWriter out) {

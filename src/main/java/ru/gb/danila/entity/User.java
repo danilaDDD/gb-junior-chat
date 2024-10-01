@@ -16,6 +16,10 @@ public class User implements Serializable {
         return login;
     }
 
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
     @Override
     public String toString() {
         return String.format("User{%s}", login);

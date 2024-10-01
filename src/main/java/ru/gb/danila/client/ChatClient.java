@@ -4,10 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ru.gb.danila.entity.User;
 import ru.gb.danila.exceptions.ServerResponseException;
+import ru.gb.danila.request.GetUsersRequest;
 import ru.gb.danila.request.LoginRequest;
 import ru.gb.danila.request.TypeRequest;
 import ru.gb.danila.response.AbstractResponse;
-import ru.gb.danila.response.LoginResponse;
+import ru.gb.danila.response.GetUsersResponse;
+import ru.gb.danila.response.DoneResponse;
+import ru.gb.danila.request.SendMessageRequest;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -46,6 +49,7 @@ class Client{
     private static final Scanner consoleScanner = new Scanner(System.in);
 
     private final User user;
+    private boolean connected;
 
     public Client(User user) {
         this.user = user;
@@ -59,7 +63,10 @@ class Client{
 
                     while(socket.isConnected()){
                         try {
-                            connectByLogin(user.getLogin(), in, out);
+                            if(!connected) {
+                                connectByLogin(user.getLogin(), in, out);
+                                connected = true;
+                            }
                             System.out.printf("available commands: %s%n", Arrays.toString(TypeCommand.values()));
                             listenCommand(in, out);
                         }catch (IllegalArgumentException e){
@@ -78,19 +85,49 @@ class Client{
         }
     }
 
-    private void listenCommand(Scanner in, PrintWriter out) {
-        TypeCommand typeCommand = TypeCommand.valueOf(in.nextLine());
+    private void listenCommand(Scanner in, PrintWriter out) throws ServerResponseException, JsonProcessingException {
+        TypeCommand typeCommand = TypeCommand.valueOf(consoleScanner.nextLine());
         switch (typeCommand){
-            case LOGIN -> {}
-            case USERS -> {}
-            case MESSAGE -> {}
+            case LOGIN -> {
+                String login = prompt("input new login:", in, out);
+                connectByLogin(login, in, out);
+                user.setLogin(login);
+            }
+
+            case USERS -> {
+                GetUsersRequest request = new GetUsersRequest(user.getLogin());
+                GetUsersResponse response = serve(request, in, out, GetUsersResponse.class, TypeRequest.USER_LIST);
+                System.out.println(response);
+
+            }
+            case MESSAGE -> {
+                String message = prompt("message: ", in, out);
+                SendMessageRequest request = new SendMessageRequest(user.getLogin(), message);
+                DoneResponse response = serve(request,
+                        in, out, DoneResponse.class, TypeRequest.SEND_MESSAGE);
+
+                if(!response.isSuccessfully()){
+                    throwResponseException(response.getErrorMessage());
+                }
+
+                System.out.println("send message successfully!");
+            }
             case DISCONNECT -> {}
         }
     }
 
+    private void throwResponseException(String errorMessage) throws ServerResponseException {
+        throw new ServerResponseException(errorMessage);
+    }
+
+    private String prompt(String message, Scanner in, PrintWriter out) {
+        System.out.print(message);
+        return in.nextLine();
+    }
+
     private void connectByLogin(String login, Scanner in, PrintWriter out) throws JsonProcessingException, ServerResponseException {
         LoginRequest loginRequest = new LoginRequest(user.getLogin());
-        serve(loginRequest, in, out, LoginResponse.class, TypeRequest.LOGIN);
+        serve(loginRequest, in, out, DoneResponse.class, TypeRequest.LOGIN);
     }
 
     private <RS extends AbstractResponse, RQ> RS serve(RQ request,
@@ -102,9 +139,9 @@ class Client{
             out.println(mapper.writeValueAsString(request));
             String s = in.nextLine();
             RS response = mapper.readValue(s, responseClass);
-            System.out.println(response);
+
             if(!response.isSuccessfully()){
-                throw new ServerResponseException("login connection with error");
+                throwResponseException("login connection with error");
             }
 
             return response;
