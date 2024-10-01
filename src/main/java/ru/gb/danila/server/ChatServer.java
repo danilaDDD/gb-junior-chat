@@ -116,6 +116,8 @@ class ClientHandler implements Runnable{
                 .filter(entry -> !entry.getKey().equals(login))
                 .map(Map.Entry::getValue)
                 .forEach(clientHandler -> clientHandler.consumeMessage(message));
+
+        out.println(new DoneResponse());
     }
 
     private void consumeMessage(String message) {
