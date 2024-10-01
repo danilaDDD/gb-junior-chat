@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 
 public class ChatServer {
-    Map<String, >
 
     public static void main(String[] args) {
         try (ServerSocket server = new ServerSocket(8888)){
